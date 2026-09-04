@@ -12,7 +12,7 @@ import onnxruntime as ort
 options = ort.SessionOptions()
 options.intra_op_num_threads = 1
 options.inter_op_num_threads = 1
-MODEL_PATH = "models/deeplab_canopy_seg.onnx"
+MODEL_PATH = "models/deeplab_canopy_seg_int8.onnx"
 session = ort.InferenceSession(MODEL_PATH, options, providers=["CPUExecutionProvider"])
 
 input_name = session.get_inputs()[0].name
@@ -40,9 +40,14 @@ def run_canopy_inference(image_path: str):
     probabilities = 1 / (1 + np.exp(-mask_logits))
     binary_mask = (probabilities[0, 0] > 0.5).astype(np.uint8) * 255
 
-    return binary_mask
+    overlay = original_image.copy()
+    overlay[probabilities[0, 0] > 0.5] = [0, 255, 0]  # Green color
+    combined_with_img = cv2.addWeighted(original_image, 0.7, overlay, 0.3, 0)
 
-mask = run_canopy_inference("test_image/date_24-5-2025_10.0.10_1.png")
-cv2.imwrite("test_image/onnx_date_24-5-2025_10.0.10_1_output_mask.png", mask )
+    return binary_mask, combined_with_img
+
+mask, combined = run_canopy_inference("test_image/pi1_date_20-5-2024_15.0.11_1.png")
+cv2.imwrite("test_image/int8_onnx_pi1_date_20-5-2024_15.0.11_1_output_mask.png", mask )
+cv2.imwrite("test_image/int8_onnx_pi1_date_20-5-2024_15.0.11_1_overlay.png", combined)
 
 

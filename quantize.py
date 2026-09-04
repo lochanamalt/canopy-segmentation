@@ -16,7 +16,7 @@
 
 from onnxruntime.quantization import quantize_dynamic, QuantType
 
-input_model = "models/deeplab_canopy_seg_preprocessed.onnx"
+input_model = "models/deeplab_canopy_seg.onnx"
 output_model = "models/deeplab_canopy_seg_int8.onnx"
 
 quantize_dynamic(
